@@ -1,0 +1,20 @@
+Package: TreeHiC
+Type: Package
+Title: An implementation of a hierarchical testing for HiC differential interaction 
+Version: 0.1.0
+Authors@R: person("Duy", "Nguyen", email = "ddnguyen4@wisc.edu", role = c("aut", "cre"))
+Maintainer: Duy Nguyen <ddnguyen4@wisc.edu>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: data.table (>= 1.10.4-3),
+    ggplot2,
+    methods,
+    readr
+Suggests: testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+RoxygenNote: 6.0.1
