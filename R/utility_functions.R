@@ -254,8 +254,9 @@ get_diff_hic <- function(testingTree, alpha, use_adjusted_pvals = TRUE) {
                     if (dim(tree_level)[1] > 0) {
                         res[[p]] <- tree_level[p.adj <= alpha]
                     } else { #number of children at the current pLevel is empty: label 1? (not 0)
-                        ##TODO: should this partition stops when its children at the current pLevel empty?
-                        #checkTree[[treePLevel]][ManifoldId == p]$test_result <- 1
+                        #### *TODO: should this partition stops when its children at the current pLevel empty?
+                        ##checkTree[[treePLevel]][ManifoldId == p]$test_result <- 1
+                        res[[p]] <- data.frame()
                     }
                 }
                 # nonNull: non-empty at thresholdPLevel, AND non-empty at [p.adj <= alpha]
