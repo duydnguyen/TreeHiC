@@ -41,7 +41,7 @@ ma <- function(x, order, center = TRUE)
     if (order%%2 == 0 & center)
         w <- c(0.5, rep(1, order - 1), 0.5)/order
     else w <- rep(1, order)/order
-    return(filter(x, w))
+    return(stats::filter(x, w))
 }
 
 #' plot persistence curve
