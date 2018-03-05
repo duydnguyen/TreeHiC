@@ -9,13 +9,37 @@
 #' @export
 #'
 #' @examples
-eval_fdr_table <- function(pvals, hic_dim, i.range.truth, j.range.truth) {
+eval_fdr_table <- function(pvals, hic_dim, i.range.truth,
+                           j.range.truth, FIND_model = FALSE) {
+    ## function for FIND-model
+    create_DI_nbhd <- function(xcoord, ycoord, i.range.truth, j.range.truth) {
+        DA_truth <- data.table::data.table('x' = i.range.truth, 'y' = j.range.truth)
+        ## xRange <- c(xcoord-1, xcoord, xcoord + 1)
+        ## yRange <- c(ycoord-1, ycoord, ycoord + 1)
+        xRange <- seq(xcoord-2, xcoord + 2, by = 1)
+        yRange <- seq(ycoord-2, ycoord + 2, by = 1)
+        return(as.matrix(DA_truth[x %in% xRange & y %in% yRange]))
+    }
+    ## MAIN
     if (dim(pvals)[1] == 0) {
         stop('matrix pvals is EMPTY')
     }
     res <- gold_res <- matrix(0, nrow = hic_dim, ncol = hic_dim)
     for (k in 1:nrow(pvals)) {
-        res[pvals[k, 1], pvals[k, 2] ] <- res[pvals[k, 2], pvals[k, 1] ] <- 1
+        if (!FIND_model) {
+            res[pvals[k, 1], pvals[k, 2] ] <- res[pvals[k, 2], pvals[k, 1] ] <- 1
+        } else {
+            xcoord <- pvals[k, 1]; ycoord <- pvals[k, 2]
+            temp_nbhd <- create_DI_nbhd(xcoord, ycoord, i.range.truth, j.range.truth)
+            if (dim(temp_nbhd)[1] == 0) {
+                res[xcoord, ycoord] <- res[ycoord, xcoord] <- 1
+            } else {
+                for (kk in 1:dim(temp_nbhd)[1]) {
+                    temp.x <- temp_nbhd[kk,1]; temp.y <- temp_nbhd[kk,2]
+                    res[temp.x, temp.y] <- res[temp.y, temp.x] <- 1
+                }
+            }
+        }
     }
     for (k in 1:length(i.range.truth)) {
         gold_res[i.range.truth[k], j.range.truth[k]] <- gold_res[j.range.truth[k], i.range.truth[k] ] <-1
@@ -49,7 +73,6 @@ eval_fdr_table <- function(pvals, hic_dim, i.range.truth, j.range.truth) {
     TNR <- TN/(TN+FP)
     ## Precision
     PPV <- ifelse(R>0, TP/(TP+FP), 0)
-
     return(data.frame('eFDR' = eFDR, 'Sensitivity' = TPR, 'Specificity' = TNR, 'Precision' = PPV))
 }
 
