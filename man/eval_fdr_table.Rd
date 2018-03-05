@@ -4,10 +4,11 @@
 \alias{eval_fdr_table}
 \title{Eval fdr table for simulation}
 \usage{
-eval_fdr_table(pvals, hic_dim, i.range.truth, j.range.truth)
+eval_fdr_table(pvals, hic_dim, i.range.truth, j.range.truth,
+  FIND_model = FALSE)
 }
 \arguments{
-\item{j.range.truth}{}
+\item{FIND_model}{logical; TRUE if evaluating FDR in FIND_model}
 }
 \description{
 Eval fdr table for simulation

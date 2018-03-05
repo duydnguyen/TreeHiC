@@ -4,6 +4,7 @@
 #' @param hic_dim
 #' @param i.range.truth
 #' @param j.range.truth
+#' @param FIND_model logical; TRUE if evaluating FDR in FIND_model
 #'
 #' @return
 #' @export
