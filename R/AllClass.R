@@ -20,6 +20,6 @@ setClass("treeHiCDataSet",
                                          persDiag = "data.frame", pLevelGrid = "list",
                                          path = "character", testingTree = "list",
                                          checkTree = "list", hic_diff_result = "matrix",
-                                         excluded = "matrix"),
+                                         excluded = "data.frame"),
          prototype = prototype(contactMatrixList = list())
 )
