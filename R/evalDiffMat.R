@@ -13,8 +13,12 @@
     meanf2 <- meanf2/nreps
     matC1[,'f'] <- meanf1
     matC2[,'f'] <- meanf2
-    zeros <- sapply(msMatList, FUN = function(x) which(x[, 'f'] == 0))
-    zeros <- unique(unlist(zeros))
+    ## zeros <- sapply(msMatList, FUN = function(x) which(x[, 'f'] == 0))
+    ## zeros <- unique(unlist(zeros))
+    ## exclude cells with zero means in BOTH conditions
+    temp_msMatList <- list('matC1' = matC1, 'matC2' = matC2)
+    zeros <- sapply(temp_msMatList, FUN = function(x) which(x[, 'f'] == 0))
+    zeros <- unique(intersect(zeros[[1]], zeros[[2]]))
     if (useLog2) {
         matRes[, 'f'] <- log2(matC2[, 'f'] + 1) - log2(matC1[, 'f'] + 1)
     }
