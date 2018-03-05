@@ -9,6 +9,7 @@
 #' @slot testingTree a list whose elements are nodes of \code{testingTree}
 #' @slot checkTree a logical list to perform hierarchical testing
 #' @slot hic_diff_result a matrix containing location of cell being tested with its p-values
+#' @slot excluded  a matrix containing locations of cell not being tested
 #'
 #' @return
 #' @export
@@ -18,6 +19,7 @@ setClass("treeHiCDataSet",
          representation = representation(contactMatrixList = "list", d_height = "data.frame",
                                          persDiag = "data.frame", pLevelGrid = "list",
                                          path = "character", testingTree = "list",
-                                         checkTree = "list", hic_diff_result = "matrix"),
+                                         checkTree = "list", hic_diff_result = "matrix",
+                                         excluded = "matrix"),
          prototype = prototype(contactMatrixList = list())
 )

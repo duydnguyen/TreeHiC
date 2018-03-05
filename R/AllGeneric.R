@@ -25,7 +25,7 @@ setGeneric("HiCDataSetFromMatrix", function(object, contactMatrixList = list(), 
 #' @export
 #'
 #' @examples
-setGeneric("evalDiffMat", function(object, useLog2 = TRUE, include.zeros = TRUE) {
+setGeneric("evalDiffMat", function(object, useLog2 = TRUE, include.zeros = TRUE, return_excluded_mat = FALSE) {
     standardGeneric("evalDiffMat")
 })
 

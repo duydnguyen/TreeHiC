@@ -26,5 +26,7 @@ A class to store HiC data and all related objects for differential interaction a
 \item{\code{checkTree}}{a logical list to perform hierarchical testing}
 
 \item{\code{hic_diff_result}}{a matrix containing location of cell being tested with its p-values}
+
+\item{\code{excluded}}{a matrix containing locations of cell not being tested}
 }}
 

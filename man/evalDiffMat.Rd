@@ -4,7 +4,8 @@
 \alias{evalDiffMat}
 \title{create a normalized height function between two HiC matrices}
 \usage{
-evalDiffMat(object, useLog2 = TRUE, include.zeros = TRUE)
+evalDiffMat(object, useLog2 = TRUE, include.zeros = TRUE,
+  return_excluded_mat = FALSE)
 }
 \arguments{
 \item{object}{: a \code{treeHiCDataSet} object}

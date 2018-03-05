@@ -1,7 +1,8 @@
-.evalDiffMat <- function(object, useLog2, include.zeros) {
+.evalDiffMat <- function(object, useLog2, include.zeros, return_excluded_mat) {
     msMatList <- lapply(object@contactMatrixList, function(mat) {TreeHiC::convertForVtk(hicMat = mat)} )
     nreps <- length(msMatList)/2
     matC1 <- matC2 <- matRes <- msMatList[[1]]
+    excluded <- matrix()
     meanf1 <- meanf2 <- rep(0, dim(matC1)[1])
     ## if more than 1 replicates for each cond., taking mean
     for (i in 1:nreps) {
@@ -22,12 +23,19 @@
     }
     # scale to [0, 1]
     matRes[, 'f'] <- (matRes[, 'f'] - min(matRes[, 'f']))/(max(matRes[, 'f']) - min(matRes[, 'f']))
+    temp.matRes <- matRes
+    ## unSelected  <- union(zeros, which(matRes[,'f'] == 0))
+    unSelected  <- zeros
     if (!include.zeros) {
         ## exlude zeros from each contact maps, and zero from any pixel in matRes
-        unSelected  <- union(zeros, which(matRes[,'f'] == 0))
+        ## unSelected  <- union(zeros, which(matRes[,'f'] == 0))
         matRes <- matRes[-unSelected, ]
     }
+    ## if (return_excluded_mat) {
+    ##     matRes <- list('matRes' = matRes, 'excluded' = temp.matRes[unSelected, ])
+    ## }
     object@d_height <- matRes
+    object@excluded <- temp.matRes[unSelected, ]
     object
 }
 
