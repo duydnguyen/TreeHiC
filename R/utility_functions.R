@@ -11,16 +11,12 @@
 convertForVtk <- function(hicMat) {
     hicMat_ <- as.matrix(hicMat)
     n <- dim(hicMat_)[2]
-    ## hicMat_[lower.tri(hicMat_)] <- NA
     hicMat_ <- reshape2::melt(hicMat_, varnames = c('row', 'col'), na.rm = TRUE)
     colnames(hicMat_) <- c('x', 'y', 'f')
-    ## get upTriId based on vtk format in python
-    upTriId <- seq(0, n*(n-1), by = n)
-    for (i in 1:(n-1)) {
-        temp = upTriId + 1
-        upTriId <- c(upTriId, tail(temp, n-i+1))
-    }
-    upTriId <- upTriId + 1
+    point_id_upper_tri <- upper.tri(hicMat, diag = TRUE)
+    offDiagId <- seq(2, n^2-n, by = n+1)
+    point_id_upper_tri[offDiagId] <- rep(TRUE, n-1)
+    upTriId <- which(point_id_upper_tri == TRUE)
     return(hicMat_[upTriId,])
 }
 

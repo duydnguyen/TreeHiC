@@ -91,11 +91,11 @@ if __name__ == '__main__':
     py = np.array([math.floor(p_id / n) for p_id in points_id_full_select])
     pz = np.repeat(0, len(px))
     points = np.column_stack((px, py, pz))
-
+    
     ## output d_height for vtk
     d_height_vtk = [heightDic[p_id] for p_id in points_id_full_select]
     d_height_vtk = np.array(d_height_vtk)
-
+    
     ## convert pixels to pixels in vtk coord (i.e. in order of points)
     map_point_id_square_to_vtk_coord = {old:new for new, old in enumerate(points_id_full_select)}
     pixels_vtk_coord = [ ]
