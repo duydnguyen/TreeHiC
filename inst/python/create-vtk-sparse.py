@@ -70,7 +70,8 @@ if __name__ == '__main__':
 
     #### * sparse setting
     ## points_id_select: selection of points with id in square-coordinate (old coord.)
-    points_id_select = heights[:, 3] - 1
+#    points_id_select = heights[:, 3] - 1
+    points_id_select = heights[:, 1] - 1
     points_id_select = points_id_select.astype(int)    
     
     ## if python 2.7.x: use mydict.iteritems()
@@ -81,7 +82,8 @@ if __name__ == '__main__':
     points_id_full_select = flat_list(pixels)
 
     ## create height function
-    d_height = heights[:, 2]
+#    d_height = heights[:, 2]
+    d_height = heights[:, 0]
     heightDic = {p_id:d for p_id, d in zip(points_id_select, d_height) }
     points_id_diff = list(set(points_id_full_select) - set(points_id_select))
     heightDic.update({p_id:d_height_excluded for p_id in points_id_diff }  )
