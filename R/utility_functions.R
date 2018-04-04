@@ -232,7 +232,11 @@ get_diff_hic <- function(testingTree, alpha, use_adjusted_pvals = TRUE) {
         if (treePLevel == 1) {
             tree_level <- testingTree[[treePLevel]][[1]]
             if (dim(tree_level)[1] > 0) {
-                res <- tree_level[p.adj <= alpha]
+                if (use_adjusted_pvals) {
+                    res <- tree_level[p.adj <= alpha]
+                } else {
+                    res <- tree_level[pvalues <= alpha]
+                }
                 if (dim(res)[1] > 0) {
                     nonNull <- unique(res$ManifoldId)
                     checkTree[[treePLevel]][ManifoldId %in% nonNull]$test_result <- rep(1, length(nonNull))
@@ -248,7 +252,11 @@ get_diff_hic <- function(testingTree, alpha, use_adjusted_pvals = TRUE) {
                 for (p in parents) {
                     tree_level <- testingTree[[treePLevel]][[p]]
                     if (dim(tree_level)[1] > 0) {
-                        res[[p]] <- tree_level[p.adj <= alpha]
+                        if (use_adjusted_pvals) {
+                            res[[p]] <- tree_level[p.adj <= alpha]
+                        } else {
+                            res[[p]] <- tree_level[pvalues <= alpha]
+                        }
                     } else { #number of children at the current pLevel is empty: label 1? (not 0)
                         #### *TODO: should this partition stops when its children at the current pLevel empty?
                         ##checkTree[[treePLevel]][ManifoldId == p]$test_result <- 1
