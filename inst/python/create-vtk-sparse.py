@@ -19,13 +19,17 @@ def flat_list(list_of_list):
     l = [item for sublist in list_of_list for item in sublist]
     return(list(set(l)))
 
-def get_pixel_id(point_id, n):
+def get_pixel_id(point_id, n, use_nbhd = False):
     """This creates a list of pixels containing the given
     point_id. The pixels' points are also returned"""
     xc = [ ]
     yc = [ ]
-    pixel_delta_x = [0, 1, 0, 1]
-    pixel_delta_y = [0, 0, 1, 1]
+    if (use_nbhd):
+        pixel_delta_x = [0, 1, 0, 1]
+        pixel_delta_y = [0, 0, 1, 1]
+    else :
+        pixel_delta_x = [0]
+        pixel_delta_y = [0]
     xp_ = point_id % n
     yp_ = math.floor(point_id / n)
     ## get pixels
