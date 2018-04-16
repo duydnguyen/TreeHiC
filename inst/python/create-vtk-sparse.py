@@ -57,6 +57,7 @@ if __name__ == '__main__':
     ### * Inputs
     inputs = sys.argv[1:]
     filename = inputs[0] + "sim.vtk"
+    filename_points = inputs[0] + "vtk-coords.csv"
     title = 'Unstructured Grid Example'
 
     #### * create height function
@@ -108,10 +109,11 @@ if __name__ == '__main__':
     for row in pixels:
         pixels_vtk_coord.append([ map_point_id_square_to_vtk_coord[val] for val in row])
 
-    #### * write to file
+    #### * write to files
     vtk = VtkData(UnstructuredGrid(points = points, pixel = pixels_vtk_coord),
                   PointData(Scalars( d_height_vtk, name = 'heights' )),
-                  'Unstructured Grid Example')
-
+                  'Unstructured Grid Example')    
+    np.savetxt(filename_points, points[:,[0,1]], delimiter=",")    
     vtk.tofile(filename)
+    
     #vtk.tofile(filename, 'binary') # cause some errors
