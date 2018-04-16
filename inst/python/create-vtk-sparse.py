@@ -113,7 +113,7 @@ if __name__ == '__main__':
     vtk = VtkData(UnstructuredGrid(points = points, pixel = pixels_vtk_coord),
                   PointData(Scalars( d_height_vtk, name = 'heights' )),
                   'Unstructured Grid Example')    
-    np.savetxt(filename_points, points[:,[0,1]], delimiter=",")    
+    np.savetxt(filename_points, points[:,[0,1]].astype(int), delimiter=",", fmt='%i')    
     vtk.tofile(filename)
     
     #vtk.tofile(filename, 'binary') # cause some errors
