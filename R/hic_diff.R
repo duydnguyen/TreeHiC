@@ -1,9 +1,10 @@
 .hic_diff <- function(object, mat_pvals, use_adjusted_pvals, alpha,
-                     batch_mode, path_vtk_coords) {
+                     batch_mode) {
     path_temp <- paste0(object@path,"temp/")
     pLevelGrid <- object@pLevelGrid[['pLevelGrid']]
     thres_names <- paste0('thresholdPLevel', 1:length(pLevelGrid))
     pathMSComplexPLevel1 <- paste0(path_temp, "MSComplexPLevel1.csv")
+    path_vtk_coords <- paste0(path_temp, "vtk-coords.csv")
     pathThresholdPLevelList <- list()
     for (i in 1:length(pLevelGrid)) {
         pathThresholdPLevelList[[thres_names[i]]] <- paste0(path_temp, paste0(thres_names[i],'.csv'))
