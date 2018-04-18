@@ -5,7 +5,8 @@
 \title{get cell ID (or vertexID vtk pipeline) for pLevel1 and pLevel2 with inputs
 from Topological Toolkit (ttk)}
 \usage{
-hic_diff(object, mat_pvals, use_adjusted_pvals = TRUE, alpha)
+hic_diff(object, mat_pvals, use_adjusted_pvals = TRUE, alpha,
+  batch_mode = FALSE, path_vtk_coords = "")
 }
 \arguments{
 \item{object}{: a \code{treeHiCDataSet} object}
@@ -15,6 +16,10 @@ hic_diff(object, mat_pvals, use_adjusted_pvals = TRUE, alpha)
 \item{use_adjusted_pvals}{: Logical, should adjusted p-values be used?}
 
 \item{alpha}{: FDR control at \code{alpha} level}
+
+\item{batch_mode}{logical; TRUE if running on large HiC matrix. Default to FALSE}
+
+\item{path_vtk_coords}{path to vtk-coords.csv; use this only if \code{batch_mode} is TRUE.}
 }
 \value{
 add additional slots \code{testingTree, checkTree, hic_diff_result}

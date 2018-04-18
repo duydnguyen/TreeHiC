@@ -5,7 +5,8 @@
 \title{get cell ID (or vertexID vtk pipeline) for pLevel1 and pLevel2 with inputs
 from Topological Toolkit (ttk)}
 \usage{
-create_testing_tree(pathThresholdPLevelList, pathMSComplexPLevel1, d_height)
+create_testing_tree(pathThresholdPLevelList, pathMSComplexPLevel1, d_height,
+  batch_mode = FALSE, path_vtk_coords = "")
 }
 \arguments{
 \item{pathThresholdPLevelList}{list of csv files for ThresholdPLevel data}
@@ -13,6 +14,10 @@ create_testing_tree(pathThresholdPLevelList, pathMSComplexPLevel1, d_height)
 \item{pathMSComplexPLevel1}{MSComplex partitions from pLevel1}
 
 \item{d_height}{data frame of 3 columns storing xy coords and height/difference values}
+
+\item{batch_mode}{logical; TRUE if running on large HiC matrix. Default to FALSE}
+
+\item{path_vtk_coords}{path to vtk-coords.csv; use this only if \code{batch_mode} is TRUE.}
 }
 \value{
 slot \code{testingTree} for object \code{treeHiCDataSet} object
