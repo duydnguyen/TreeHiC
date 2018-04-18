@@ -4,7 +4,8 @@
 \alias{get_diff_hic}
 \title{Title}
 \usage{
-get_diff_hic(testingTree, alpha, use_adjusted_pvals = TRUE)
+get_diff_hic(testingTree, alpha, use_adjusted_pvals = TRUE,
+  batch_mode = FALSE)
 }
 \arguments{
 \item{testingTree}{a slot \code{testingTree} of object \code{treeHiCDataSet}}
@@ -12,6 +13,8 @@ get_diff_hic(testingTree, alpha, use_adjusted_pvals = TRUE)
 \item{alpha}{FDR control at \code{alpha} level}
 
 \item{use_adjusted_pvals}{Logical, default to TRUE if adjusted pvalues are used}
+
+\item{batch_mode}{logical; TRUE if running on a large HiC matrix. Default to FALSE}
 }
 \description{
 Title

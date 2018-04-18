@@ -226,12 +226,14 @@ evalPvals <- function(testingTree, mat_pvals) {
 #' @param testingTree a slot \code{testingTree} of object \code{treeHiCDataSet}
 #' @param alpha FDR control at \code{alpha} level
 #' @param use_adjusted_pvals Logical, default to TRUE if adjusted pvalues are used
+#' @param batch_mode logical; TRUE if running on a large HiC matrix. Default to FALSE
 #'
 #' @return
 #' @export
 #'
 #' @examples
-get_diff_hic <- function(testingTree, alpha, use_adjusted_pvals = TRUE) {
+get_diff_hic <- function(testingTree, alpha,
+                        use_adjusted_pvals = TRUE, batch_mode = FALSE) {
     print(paste0('adjusted is ', use_adjusted_pvals))
     hic_diff_res <- data.frame(matrix(nrow=0,ncol=6))
     names(hic_diff_res) <- c('x_vtk' , 'y_vtk', 'ManifoldId', 'vertexId', 'pvalues', 'p.adj')
@@ -282,12 +284,18 @@ get_diff_hic <- function(testingTree, alpha, use_adjusted_pvals = TRUE) {
                         res[[p]] <- data.frame()
                     }
                 }
-                # nonNull: non-empty at thresholdPLevel, AND non-empty at [p.adj <= alpha]
+                ## nonNull: non-empty at thresholdPLevel, AND non-empty at [p.adj <= alpha]
                 nonNull <- names(res)[sapply(res, dim)[1,] > 0]
-                nonNull <- as.numeric(unique(nonNull))
+                if (!batch_mode) {
+                    nonNull <- as.numeric(unique(nonNull))
+                }
                 checkTree[[treePLevel]][ManifoldId %in% nonNull]$test_result <- rep(1, length(nonNull))
                 for (p in as.character(nonNull)) {
-                    dat <- data.frame(res[[p]], 'ManifoldId' = rep( as.numeric(p), nrow(res[[p]])))
+                    if (!batch_mode) {
+                        dat <- data.frame(res[[p]], 'ManifoldId' = rep( as.numeric(p), nrow(res[[p]])))
+                    } else {
+                        dat <- data.frame(res[[p]], 'ManifoldId' = rep(p, nrow(res[[p]])))
+                    }
                     dat <- dat[,c(1,2,6,3,4,5)]
                     hic_diff_res <- rbind(hic_diff_res, dat)
                 }
