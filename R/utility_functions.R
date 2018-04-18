@@ -95,13 +95,20 @@ plot_persistence_curve <- function(pLevelGridList, path) {
 #' @param pathThresholdPLevelList list of csv files for ThresholdPLevel data
 #' @param pathMSComplexPLevel1 MSComplex partitions from pLevel1
 #' @param d_height data frame of 3 columns storing xy coords and height/difference values
+#' @param batch_mode logical; TRUE if running on large HiC matrix. Default to FALSE
+#' @param path_vtk_coords path to vtk-coords.csv; use this only if \code{batch_mode} is TRUE.
 #'
 #' @return slot \code{testingTree} for object \code{treeHiCDataSet} object
 #' @export
 #'
 #' @examples
-create_testing_tree <- function(pathThresholdPLevelList, pathMSComplexPLevel1, d_height) {
+create_testing_tree <- function(pathThresholdPLevelList, pathMSComplexPLevel1, d_height,
+                               batch_mode = FALSE, path_vtk_coords = "") {
     thresPLevelList <- list()
+    ## extract (x_vtk, y_vtk) from vtk-coords.csv
+    if (batch_mode) {
+        vtk_coords <- readr::read_csv(path_vtk_coords, col_names = FALSE)
+    }
     fNames <- paste0('thresholdPLevel', 1:length(pathThresholdPLevelList))
     for (i in 1:length(pathThresholdPLevelList)) {
         thresPLevelList[[fNames[i]]] <- data.table::data.table(readr::read_csv(pathThresholdPLevelList[[i]],
@@ -120,8 +127,14 @@ create_testing_tree <- function(pathThresholdPLevelList, pathMSComplexPLevel1, d
     vertexIdPLevelList <- list()
     ## case PLevel1: treats as a separate case
     IdPLevel1 <-  thresPLevelList[[1]][NodeType %in% NodeTypeSelect]$VertexIdentifier + 1
-    vertexIdPLevel1 <- d_height[IdPLevel1, c('x', 'y')] - 1
-    vertexIdPLevel1$vertexId <- IdPLevel1
+    if (!batch_mode) {
+        vertexIdPLevel1 <- d_height[IdPLevel1, c('x', 'y')] - 1
+        vertexIdPLevel1$vertexId <- IdPLevel1
+    } else {
+        ## vtk_coords <- readr::read_csv(path_vtk_coords, col_names = FALSE)
+        vertexIdPLevel1 <- vtk_coords[IdPLevel1, ]
+        vertexIdPLevel1$vertexId <- IdPLevel1
+    }
     names(vertexIdPLevel1) <- c('x_vtk', 'y_vtk', 'vertexId' )
     ## get partition labels for each points in pLevel1
     ## TODO: only works on DescendingManifold (aka max points) for now
@@ -134,19 +147,25 @@ create_testing_tree <- function(pathThresholdPLevelList, pathMSComplexPLevel1, d
     ## case: pLevel > pLevel1
     if (length(thresPLevelList) > 1) {
         for (thresIndex in 2:length(thresPLevelList)) {
-        ## get extrema ids for testing at pLevel(s)
-        ## NodeType: 0:local min, 4: local max
-        ## add 1 since VTK is counting from 0
-        IdPLevel <-  thresPLevelList[[thresIndex]][NodeType %in% NodeTypeSelect]$VertexIdentifier + 1
-        vertexIdPLevel <- d_height[IdPLevel, c('x', 'y')] - 1
-        vertexIdPLevel$vertexId <- IdPLevel
-        names(vertexIdPLevel) <- c('x_vtk', 'y_vtk', 'vertexId' )
-        ## ## get partition labels for each points in pLevel(s)
-        ## ## TODO: only works on DescendingManifold (aka max points) for now
-        vertexIdPLevel <- lapply(1:length(vertexPartitions), function(p) {data.table::data.table(merge(vertexIdPLevel, vertexPartitions[[p]]))} )
-        names(vertexIdPLevel) <- names(vertexPartitions)
-        vertexIdPLevelList[[paste0('pLevel',thresIndex)]] <- vertexIdPLevel
-    }
+            ## get extrema ids for testing at pLevel(s)
+            ## NodeType: 0:local min, 4: local max
+            ## add 1 since VTK is counting from 0
+            IdPLevel <-  thresPLevelList[[thresIndex]][NodeType %in% NodeTypeSelect]$VertexIdentifier + 1
+            if (!batch_mode) {
+                vertexIdPLevel <- d_height[IdPLevel, c('x', 'y')] - 1
+                vertexIdPLevel$vertexId <- IdPLevel
+            } else {
+                ## vtk_coords <- readr::read_csv(path_vtk_coords, col_names = FALSE)
+                vertexIdPLevel <- vtk_coords[IdPLevel, ]
+                vertexIdPLevel$vertexId <- IdPLevel
+            }
+            names(vertexIdPLevel) <- c('x_vtk', 'y_vtk', 'vertexId' )
+            ## ## get partition labels for each points in pLevel(s)
+            ## ## TODO: only works on DescendingManifold (aka max points) for now
+            vertexIdPLevel <- lapply(1:length(vertexPartitions), function(p) {data.table::data.table(merge(vertexIdPLevel, vertexPartitions[[p]]))} )
+            names(vertexIdPLevel) <- names(vertexPartitions)
+            vertexIdPLevelList[[paste0('pLevel',thresIndex)]] <- vertexIdPLevel
+        }
     }
     return(vertexIdPLevelList)
 }
