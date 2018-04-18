@@ -1,5 +1,5 @@
-.hic_diff <- function(object, mat_pvals, use_adjusted_pvals, alpha) {
-
+.hic_diff <- function(object, mat_pvals, use_adjusted_pvals, alpha,
+                     batch_mode, path_vtk_coords) {
     path_temp <- paste0(object@path,"temp/")
     pLevelGrid <- object@pLevelGrid[['pLevelGrid']]
     thres_names <- paste0('thresholdPLevel', 1:length(pLevelGrid))
@@ -10,7 +10,8 @@
     }
     ## create testing tree
     testingTree <- TreeHiC::create_testing_tree(pathThresholdPLevelList = pathThresholdPLevelList,
-                                               pathMSComplexPLevel1 = pathMSComplexPLevel1, d_height = object@d_height)
+                                               pathMSComplexPLevel1 = pathMSComplexPLevel1, d_height = object@d_height,
+                                               batch_mode = batch_mode, path_vtk_coords = path_vtk_coords)
     testingTree <- TreeHiC::evalPvals(testingTree = testingTree, mat_pvals = mat_pvals)
     ## perform differential testing
     diffResultList <- TreeHiC::get_diff_hic(testingTree = testingTree, alpha = alpha, use_adjusted_pvals = use_adjusted_pvals)

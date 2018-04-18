@@ -51,11 +51,14 @@ setGeneric("selectPLevelGrid", function(object, maxDepth = 0) {
 #' @param mat_pvals : a squared matrix of (raw) p-values to perform testing
 #' @param use_adjusted_pvals : Logical, should adjusted p-values be used?
 #' @param alpha : FDR control at \code{alpha} level
+#' @param batch_mode logical; TRUE if running on large HiC matrix. Default to FALSE
+#' @param path_vtk_coords path to vtk-coords.csv; use this only if \code{batch_mode} is TRUE.
 #'
 #' @return add additional slots \code{testingTree, checkTree, hic_diff_result}
 #' @export
 #'
 #' @examples
-setGeneric("hic_diff", function(object, mat_pvals, use_adjusted_pvals = TRUE, alpha) {
+setGeneric("hic_diff", function(object, mat_pvals, use_adjusted_pvals = TRUE, alpha,
+                                batch_mode = FALSE, path_vtk_coords = "") {
     standardGeneric("hic_diff")
 })
