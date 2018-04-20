@@ -376,6 +376,136 @@ get_partitions <- function(path, pLevelGrid) {
     }
 }
 
+#'  set up data for running batch version
+#'
+#' @param hicDb a \code{treeHiCDataSet} object
+#' @param batchSize number of cells in batches
+#' @param nBatches number of batches
+#'
+#' @return batches of csv files and hicDb objects
+#' @export
+#' @examples
+create_batches <- function(hicDb, batchSize = 10^6, nBatches = 5) {
+    hicDbList <- list()
+    points_id_select_all <- rownames(hicDb@d_height)
+    max_grid <- dim(hicDb@d_height)[1] / batchSize
+    max_grid <- ifelse(max_grid > 1, floor(max_grid), 0)
+    if (max_grid > 0) {
+        grid_range <- c(0, seq(1, max_grid, by= 1) * batchSize, dim(hicDb@d_height)[1] )
+    } else {
+        stop("Dividing grids is not required since batchSize > number of cells tested.")
+    }
+    df_region_select <- data.frame('i' = c(), "min"=c(), "max"=c())
+    for (i in 2:length(grid_range)) {
+        batch_range <-  grid_range[i-1]:grid_range[i]
+        points_id_select <- points_id_select_all[batch_range]
+        df_region_select <- rbind(df_region_select,
+                                 data.frame('i' = i,
+                                            'min'= min(hicDb@d_height[batch_range,'f']),
+                                            'max'= max(hicDb@d_height[batch_range,'f'])))
+    }
+    ## exclude regions whose cells are zeros
+    df_region_select <- data.table::data.table(df_region_select)
+    df_region_select <- df_region_select[min != max]
+    grid_index_select <- df_region_select$i
+#### write to csv for each batches
+    if (nBatches == 1) {
+        hicDb_temp <- new("treeHiCDataSet")
+        df_csv <- data.frame('f' = c(), "points_id_select" = c())
+        for (i in grid_index_select) {
+            print(i)
+            start <- grid_range[i-1] + 1
+            end <- grid_range[i]
+            df_csv <- rbind(df_csv,
+                           data.frame('f' = hicDb@d_height[start:end, 'f'],
+                                      'points_id_select' = points_id_select_all[start:end]))
+           }
+        hicDbList[[batch]] <- hicDb_temp
+        write.csv(df_csv,
+                  file = paste0(hicDb@path,"temp/heights-scalar",".csv"),
+                  row.names = FALSE, quote=FALSE)
+    } else { ## run multiple batches (nBatches > 1)
+        print("run multiple batches")
+        sizeBatch <- floor(length(grid_index_select) / nBatches)
+        batchs_index <- list()
+        for (batch in 1:nBatches) {
+            start <- sizeBatch*(batch-1) + 1
+            end <- sizeBatch*batch
+            if (batch == nBatches) {
+                end <- length(grid_index_select)
+            }
+            batchs_index[[batch]] <- grid_index_select[start:end ]
+        }
+        for (batch in 1:nBatches) {
+            print(paste0('batch = ', batch))
+            system(paste0('mkdir ', hicDb@path, 'temp/batch', batch))
+            system(paste0('mkdir ', hicDb@path, 'temp/batch', batch,'/temp'))
+            hicDb_temp <- new("treeHiCDataSet")
+            batch_range_grid <- batchs_index[[batch]]
+            df_csv <- data.frame('f' = c(), "points_id_select" = c())
+            for (i in batch_range_grid) {
+                start <- grid_range[i-1] + 1
+                end <- grid_range[i]
+                df_csv <- rbind(df_csv,
+                               data.frame('f' = hicDb@d_height[start:end, 'f'],
+                                          'points_id_select' = points_id_select_all[start:end]))
+               }
+            hicDbList[[batch]] <- hicDb_temp
+            write.csv(df_csv,
+                      file = paste0(hicDb@path,"temp/batch",batch,"/temp/","heights-scalar",".csv"),
+                      row.names = FALSE, quote=FALSE)
+        }
+    }
+    return(hicDbList)
+}
+
+#' combine hic_diff from all batches
+#'
+#' @param hicDbList a list of \code{treeHiCDataSet} objects resulting from batch mode
+#'
+#' @return a list (\code{testingTree}) which is a combined result from individual batch's \code{testingTree}.
+#' @export
+#'
+#' @examples
+ combine_testingTree <- function(hicDbList) {
+    testingTree <- list()
+    nBatches <- length(hicDbList)
+    treeDepth <- length(hicDbList[[1]]@testingTree)
+    if (treeDepth == 0) {
+        stop("tree is Empty (treeDepth = 0)")
+    }
+    for (treePLevel in 1:treeDepth) {
+        if (treePLevel == 1) {
+            tree_level <- data.frame('x_vtk'=c(), 'y_vtk'=c(), 'ManifoldId'=c(),
+                                    'vertexId'=c(), 'pvalues'=c(), 'p.adj'=c())
+            for (batch in 1:nBatches) {
+                tree_level_temp <- hicDbList[[batch]]@testingTree[[treePLevel]][[1]]
+                ## relabel ManifoldId
+                temp_lab <- paste0(rep(batch, length(tree_level_temp$ManifoldId)),'_',
+                                  tree_level_temp$ManifoldId)
+                tree_level_temp$ManifoldId <- temp_lab
+                tree_level <- rbind(tree_level, tree_level_temp)
+            }
+            tree_level$p.adj <- NULL
+            tree_level[, `:=`(p.adj, p.adjust(pvalues, method = 'BH'))]
+            testingTree[[treePLevel]] <- list('rootNode' = tree_level)
+        } else { ## treePLevel > 1
+            tree_level <- list()
+            for (batch in 1:nBatches) {
+                tree_level_temp <- hicDbList[[batch]]@testingTree[[treePLevel]]
+                ## relabel ManifoldId
+                temp_lab <- paste0(rep(batch, length(names(tree_level_temp))),'_',
+                                  names(tree_level_temp))
+                names(tree_level_temp) <- temp_lab
+                tree_level <- c(tree_level, tree_level_temp)
+            }
+            testingTree[[treePLevel]] <- tree_level
+        }
+    }
+    names(testingTree) <- paste0('pLevel', 1:length(testingTree))
+    return(testingTree)
+}
+
 
 #' @import data.table
 NULL
