@@ -439,9 +439,9 @@ create_batches <- function(hicDb, batchSize = 10^6, nBatches = 5) {
             if (batch == nBatches) {
                 end <- id_seq[batch+1]
             }
-            print(paste(start, end))
             batchs_index[[batch]] <- grid_index_select[start:end]
         }
+        print(batchs_index)
         for (batch in 1:nBatches) {
             print(paste0('batch = ', batch))
             system(paste0('mkdir ', hicDb@path, 'temp/batch', batch))
