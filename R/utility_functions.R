@@ -81,7 +81,8 @@ plot_persistence_curve <- function(pLevelGridList, path) {
     dfPlot[[6]] <-ggplot2::ggplot(dat, aes(log10(persistence))) + geom_density(adjust = 1/10) +
         geom_vline(xintercept = log10(pLevel1), col = 'blue') + ggtitle(hist_title)
     pdf(file = paste0(path,'temp/pLevelGrid.pdf'))
-    for (i in 1:length(dfPlot)) {
+    ## for (i in 1:length(dfPlot)) {
+    for (i in 6) {
         print(dfPlot[[i]])
     }
     hist(log10(dat$persistence), breaks = 300, xlim = c(-7,0), main= hist_title)
