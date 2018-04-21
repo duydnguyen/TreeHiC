@@ -4,13 +4,15 @@
 \alias{get_partitions}
 \title{generate Morse-Smale partitions}
 \usage{
-get_partitions(path, pLevelGrid)
+get_partitions(path, pLevelGrid, eval_MSComplex = TRUE)
 }
 \arguments{
 \item{path}{path to a working folder}
 
 \item{pLevelGrid}{a list whose elements contain different persistence levels of
 \code{testingTree}}
+
+\item{eval_MSComplex}{logical to indicate if MS partition is evaluated.}
 }
 \description{
 generate Morse-Smale partitions

@@ -345,18 +345,21 @@ get_persistence_curve <- function(path) {
 #' @param path path to a working folder
 #' @param pLevelGrid a list whose elements contain different persistence levels of
 #' \code{testingTree}
+#' @param eval_MSComplex logical to indicate if MS partition is evaluated.
 #'
 #' @return
 #' @export
 #'
 #' @examples
-get_partitions <- function(path, pLevelGrid) {
-    ## ttkMSComplex.py
-    print("need paraview pvpython: create MS partition labels for pLevel1")
-    pyPath <- system.file("python", "ttkMSComplex.py", package = "TreeHiC")
-    ## python ttkMSComplex.py path-to-temp-folder pLevel1 1
-    command <- paste0("pvpython ", pyPath, ' ', path, 'temp/ ', pLevelGrid[length(pLevelGrid)], ' 1')
-    system(command)
+get_partitions <- function(path, pLevelGrid, eval_MSComplex = TRUE) {
+    if (eval_MSComplex) {
+        ## ttkMSComplex.py
+        print("need paraview pvpython: create MS partition labels for pLevel1")
+        pyPath <- system.file("python", "ttkMSComplex.py", package = "TreeHiC")
+        ## python ttkMSComplex.py path-to-temp-folder pLevel1 1
+        command <- paste0("pvpython ", pyPath, ' ', path, 'temp/ ', pLevelGrid[length(pLevelGrid)], ' 1')
+        system(command)
+    }
     ## ttkPDThreshold.py
     print("create grid of pLevel for the testing tree")
     pyPath <- system.file("python", "ttkPDThreshold.py", package = "TreeHiC")
