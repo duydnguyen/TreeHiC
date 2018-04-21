@@ -432,13 +432,15 @@ create_batches <- function(hicDb, batchSize = 10^6, nBatches = 5) {
         print("run multiple batches")
         sizeBatch <- floor(length(grid_index_select) / nBatches)
         batchs_index <- list()
+        id_seq <- ceiling(seq(1, length(grid_index_select), length.out = nBatches+1))
         for (batch in 1:nBatches) {
-            start <- sizeBatch*(batch-1) + 1
-            end <- sizeBatch*batch
+            start <- id_seq[batch]
+            end <- id_seq[batch+1] - 1
             if (batch == nBatches) {
-                end <- length(grid_index_select)
+                end <- id_seq[batch+1]
             }
-            batchs_index[[batch]] <- grid_index_select[start:end ]
+            print(paste(start, end))
+            batchs_index[[batch]] <- grid_index_select[start:end]
         }
         for (batch in 1:nBatches) {
             print(paste0('batch = ', batch))
