@@ -512,6 +512,115 @@ create_batches <- function(hicDb, batchSize = 10^6, nBatches = 5) {
     return(testingTree)
 }
 
+#' get cell ID (or vertexID vtk pipeline) for pLevel1 and pLevel2 with inputs
+#' from Topological Toolkit (ttk). This is the simplified version of hic_diff()
+#' where the input of MSComplex is not required (i.e.,\code{eval_MSComplex = F}).
+#'
+#' @param object : a \code{treeHiCDataSet} object
+#' @param mat_pvals : a squared matrix of (raw) p-values to perform testing
+#' @param use_adjusted_pvals : Logical, should adjusted p-values be used?
+#' @param alpha : FDR control at \code{alpha} level
+#' @param batch_mode logical; TRUE if running on large HiC matrix. Default to FALSE
+#'
+#' @return add additional slots \code{testingTree, hic_diff_result}
+#' @export
+#'
+#' @examples
+hic_diff_simplified <- function(hicDb, mat_pvals, use_adjusted_pvals = TRUE,
+                               alpha, batch_mode = FALSE) {
+    ## create_testing_tree_simplified()
+    create_testing_tree_simplified <- function(pathThresholdPLevelList,
+                                              batch_mode = FALSE, path_vtk_coords = "") {
+        thresPLevelList <- list()
+        ## extract (x_vtk, y_vtk) from vtk-coords.csv
+        if (batch_mode) {
+            vtk_coords <- readr::read_csv(path_vtk_coords, col_names = FALSE)
+        }
+        fNames <- paste0('thresholdPLevel', 1:length(pathThresholdPLevelList))
+        for (i in 1:length(pathThresholdPLevelList)) {
+            thresPLevelList[[fNames[i]]] <- data.table::data.table(readr::read_csv(pathThresholdPLevelList[[i]],
+                            col_types = cols(`Coordinates:0` = col_skip(), `Coordinates:1` = col_skip(),
+                                             `Coordinates:2` = col_skip(), `Points:0` = col_skip(), `Points:1` = col_skip(),
+                                             `Points:2` = col_skip(), RegionSize = col_skip(), RegionSpan = col_skip(),
+                                             RegionType = col_skip())))
+        }
+        NodeTypeSelect <- c(0, 4)
+        vertexIdPLevelList <- list()
+        ## case PLevel1: treats as a separate case
+        IdPLevel1 <-  thresPLevelList[[1]][NodeType %in% NodeTypeSelect]$VertexIdentifier + 1
+        if (!batch_mode) {
+            vertexIdPLevel1 <- d_height[IdPLevel1, c('x', 'y')] - 1
+            vertexIdPLevel1$vertexId <- IdPLevel1
+        } else {
+            vertexIdPLevel1 <- vtk_coords[IdPLevel1, ]
+            vertexIdPLevel1$vertexId <- IdPLevel1
+        }
+        names(vertexIdPLevel1) <- c('x_vtk', 'y_vtk', 'vertexId' )
+        vertexIdPLevelList[['pLevel1']] <- list('rootNode' = vertexIdPLevel1)
+        return(vertexIdPLevelList)
+    }
+    ## get_diff_hic_simplified()
+    get_diff_hic_simplified <- function(testingTree, alpha,
+                                       use_adjusted_pvals = TRUE, batch_mode = FALSE) {
+        print(paste0('adjusted is ', use_adjusted_pvals))
+        hic_diff_res <- data.frame(matrix(nrow=0,ncol=5))
+        ## names(hic_diff_res) <- c('x_vtk' , 'y_vtk', 'ManifoldId', 'vertexId', 'pvalues', 'p.adj')
+        names(hic_diff_res) <- c('x_vtk' , 'y_vtk', 'vertexId', 'pvalues', 'p.adj')
+        ## this keeps track of testing result in the tree (0: do not reject; 1: reject)
+        checkTree <- list()
+        treeDepth <- length(testingTree)
+        if (treeDepth == 0) {
+            stop("tree is Empty (treeDepth = 0)")
+        }
+        for (treePLevel in 1:treeDepth) {
+            if (treePLevel == 1) {
+                tree_level <- data.table::data.table(testingTree[[treePLevel]][[1]])
+                if (dim(tree_level)[1] > 0) {
+                    if (use_adjusted_pvals) {
+                        res <- tree_level[p.adj <= alpha]
+                    } else {
+                        res <- tree_level[pvalues <= alpha]
+                    }
+                    if (dim(res)[1] > 0) {
+                        hic_diff_res <- rbind(hic_diff_res, res)
+                    }
+                } else {
+                    stop("number of nodes at pLevel1 are zero. Nothing to test ")
+                }
+            } else { # pLevel > pLevel1
+            }
+        }
+        if (dim(hic_diff_res)[1] > 0) {
+            hic_diff_res[, 'x_vtk'] <- hic_diff_res[, 'x_vtk'] + 1
+            hic_diff_res[, 'y_vtk'] <- hic_diff_res[, 'y_vtk'] + 1
+            names(hic_diff_res)[c(1,2)] <- c('x', 'y')
+            hic_diff_res <- as.matrix(hic_diff_res)
+        }
+        return(list('hic_diff_res' = hic_diff_res))
+    }
+    ## MAIN ##
+    path_temp <- paste0(hicDb@path,"temp/")
+    pLevelGrid <- hicDb@pLevelGrid[['pLevelGrid']]
+    thres_names <- paste0('thresholdPLevel', 1:length(pLevelGrid))
+    path_vtk_coords <- paste0(path_temp, "vtk-coords.csv")
+    pathThresholdPLevelList <- list()
+    for (i in 1:length(pLevelGrid)) {
+        pathThresholdPLevelList[[thres_names[i]]] <- paste0(path_temp, paste0(thres_names[i],'.csv'))
+    }
+    ## create testing tree
+    testingTree <- create_testing_tree_simplified(pathThresholdPLevelList = pathThresholdPLevelList,
+                                               batch_mode = batch_mode, path_vtk_coords = path_vtk_coords)
+    testingTree <- TreeHiC::evalPvals(testingTree = testingTree, mat_pvals = mat_pvals)
+    ## perform differential testing
+    diffResultList <- get_diff_hic_simplified(testingTree = testingTree, alpha = alpha, use_adjusted_pvals = use_adjusted_pvals)
+    if (dim(diffResultList[['hic_diff_res']])[1] > 0) {
+        hicDb@hic_diff_result <- as.matrix(diffResultList[['hic_diff_res']])
+    }
+    ## return hicDb
+    hicDb@testingTree <- testingTree
+    hicDb
+}
+
 
 #' @import data.table
 NULL
