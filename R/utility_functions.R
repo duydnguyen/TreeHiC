@@ -493,6 +493,7 @@ create_batches <- function(hicDb, batchSize = 10^6, nBatches = 5) {
                 tree_level <- rbind(tree_level, tree_level_temp)
             }
             tree_level$p.adj <- NULL
+            tree_level <- data.table::data.table(tree_level)
             tree_level[, `:=`(p.adj, p.adjust(pvalues, method = 'BH'))]
             testingTree[[treePLevel]] <- list('rootNode' = tree_level)
         } else { ## treePLevel > 1
