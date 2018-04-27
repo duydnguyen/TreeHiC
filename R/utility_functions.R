@@ -550,7 +550,7 @@ hic_diff_simplified <- function(hicDb, mat_pvals, use_adjusted_pvals = TRUE,
         ## case PLevel1: treats as a separate case
         IdPLevel1 <-  thresPLevelList[[1]][NodeType %in% NodeTypeSelect]$VertexIdentifier + 1
         if (!batch_mode) {
-            vertexIdPLevel1 <- d_height[IdPLevel1, c('x', 'y')] - 1
+            vertexIdPLevel1 <- hicDb@d_height[IdPLevel1, c('x', 'y')] - 1
             vertexIdPLevel1$vertexId <- IdPLevel1
         } else {
             vertexIdPLevel1 <- vtk_coords[IdPLevel1, ]
